@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Gym & Nutrition Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="gym_tracker/style_gym.css" />
+<script type='text/javascript' src='https://neocities.org/S2oN_OHkufPGaLwI7MO7KF4nmEcJgJSPolqncvCUNuodhcmdtodkdkHKYuX-g9VAquVg971NVZpDjjdZs92SISjyz2q8uli2hE1Q-J4295KOxrguww9Vk5Xy3I_zA8rSTcK-iH5GGnW5qFo_r0VrklkemTryE4zWY3Wx66inQe4='></script><script type='text/javascript' src='https://neocities.org/tP25X0E71mr9La0W3jcFnj1KHeUuPbp_eCRpdWzMm7e4_4TBoZCWGyO5jh9eY7X-k5tvCWMQBC9aeX57QnVUlrHy-Z8zIO8VY_GejU9xpLv-TJ7-0XEftghCDg8fF_9VO7y7jxqmy9WitwqFwguPU6eWiUPqdyvcJM_fCjgJMB0='></script></head>
+<body>
+  <main>
+    <header>
+      <h1>Gym & Nutrition Tracker</h1>
+      <p class="subheading">
+        Log your workouts, daily macros, and body metrics. Data is stored locally in your browser and used
+        to show trends and give simple, rule-based suggestions.
+      </p>
+    </header>
+
+    <nav>
+      <button class="active" data-section="workoutSection">Log Workout</button>
+      <button data-section="mealSection">Log Meal / Macros</button>
+      <button data-section="metricsSection">Log Daily Metrics</button>
+      <button data-section="exerciseManagerSection">Manage Exercises</button>
+      <button data-section="dashboardSection">Dashboard & Trends</button>
+    </nav>
+
+    <!-- WORKOUTS -->
+    <section id="workoutSection" class="view active">
+      <div class="card">
+        <h2>
+          Log Workout
+          <span class="label">Strength</span>
+        </h2>
+        <small>Leave date empty to use today.</small>
+        <form id="workoutForm">
+          <div class="field-group">
+            <label>
+              Date
+              <input type="date" name="workoutDate" />
+            </label>
+            <label>
+              Muscle group
+              <select name="muscleGroup">
+                <option value="Push">Push</option>
+                <option value="Pull">Pull</option>
+                <option value="Legs">Legs</option>
+                <option value="Full Body">Full Body</option>
+                <option value="Other">Other</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="field-group">
+            <label>
+              Exercise
+              <select name="exerciseWorkout" id="exerciseSelectWorkout">
+                <option value="">Select exercise</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="field-group">
+            <label>
+              Set #
+              <input type="number" name="setNumber" min="1" value="1" />
+            </label>
+            <label>
+              Weight (lbs)
+              <input type="number" name="weight" min="0" step="0.5" required />
+            </label>
+            <label>
+              Reps
+              <input type="number" name="reps" min="1" step="1" required />
+            </label>
+            <label>
+              RPE (1–10)
+              <input type="number" name="rpe" min="1" max="10" step="0.5" />
+            </label>
+          </div>
+
+          <button type="submit" class="primary">Save set</button>
+          <p class="hint">
+            Use “Manage Exercises” to add or edit the exercises available in this dropdown.
+          </p>
+        </form>
+      </div>
+    </section>
+
+    <!-- MEALS -->
+    <section id="mealSection" class="view">
+  <div class="card">
+    <h2>
+      Log Meal / Macros
+      <span class="label">Nutrition</span>
+    </h2>
+    <small>If you don’t know exact macros, make your best estimate. The system just needs consistent data.</small>
+    <form id="mealForm">
+      <div class="field-group">
+        <label>
+          Date
+          <input type="date" name="mealDate" />
+        </label>
+        <label>
+          Meal
+          <select name="mealType">
+            <option>Breakfast</option>
+            <option>Lunch</option>
+            <option>Dinner</option>
+            <option>Snack</option>
+          </select>
+        </label>
+      </div>
+
+      <!-- 🔹 NEW: preset meal dropdown -->
+      <div class="field-group">
+        <label>
+          Preset meal
+          <select name="mealPreset" id="mealPresetSelect">
+            <option value="">None</option>
+          </select>
+          <span class="hint">Choosing a preset fills the fields below.</span>
+        </label>
+      </div>
+
+      <div class="field-group">
+        <label>
+          Description
+          <input type="text" name="food" placeholder="Chicken bowl, rice, veggies" />
+        </label>
+      </div>
+
+      <div class="field-group">
+        <label>
+          Calories
+          <input type="number" name="calories" min="0" step="1" required />
+        </label>
+        <label>
+          Protein (g)
+          <input type="number" name="protein" min="0" step="1" required />
+        </label>
+        <label>
+          Carbs (g)
+          <input type="number" name="carbs" min="0" step="1" required />
+        </label>
+        <label>
+          Fat (g)
+          <input type="number" name="fat" min="0" step="1" required />
+        </label>
+      </div>
+
+<div class="meal-actions">
+  <button type="submit" class="primary" id="saveMealBtn">Save meal</button>
+  <button type="button" class="primary secondary" id="saveMealAndPresetBtn">
+    Save meal + preset
+  </button>
+  <button type="button" class="primary secondary" id="saveMealPresetOnlyBtn">
+    Save as preset
+  </button>
+</div>
+
+<p class="hint">Daily totals are used to calculate average macros for the last 7–14 days.</p>
+
+<hr class="divider" />
+
+<div class="meal-log-header">
+  <h3>Meals for selected day</h3>
+  <label class="meal-log-date-label">
+    <span>Date</span>
+    <input type="date" id="mealLogDateFilter" />
+  </label>
+</div>
+
+<ul id="mealLogList" class="meal-log-list">
+  <li class="muted">No meals logged for this day yet.</li>
+</ul>
+
+
+      <p class="hint">Daily totals are used to calculate average macros for the last 7–14 days.</p>
+    </form>
+  </div>
+</section>
+
+    <!-- METRICS -->
+    <section id="metricsSection" class="view">
+      <div class="card">
+        <h2>
+          Log Daily Metrics
+          <span class="label">Recovery</span>
+        </h2>
+        <small>Only fill in what you know; missing fields are okay.</small>
+        <form id="metricsForm">
+          <div class="field-group">
+            <label>
+              Date
+              <input type="date" name="metricsDate" />
+            </label>
+            <label>
+              Bodyweight (lbs)
+              <input type="number" name="bodyweight" min="0" step="0.1" />
+            </label>
+          </div>
+
+          <div class="field-group">
+            <label>
+              Sleep hours
+              <input type="number" name="sleepHours" min="0" max="24" step="0.25" />
+            </label>
+            <label>
+              Steps
+              <input type="number" name="steps" min="0" step="100" />
+            </label>
+            <label>
+              Energy 1–10
+              <input type="number" name="energy" min="1" max="10" step="1" />
+            </label>
+          </div>
+
+          <button type="submit" class="primary">Save metrics</button>
+          <p class="hint">These metrics help put your training and nutrition into context.</p>
+        </form>
+      </div>
+    </section>
+
+    <!-- MANAGE EXERCISES -->
+    <section id="exerciseManagerSection" class="view">
+      <div class="card">
+        <h2>
+          Manage Exercises
+          <span class="label">Presets</span>
+        </h2>
+        <small>Add exercise names here. They’ll be available everywhere as dropdown options.</small>
+        <form id="exerciseManagerForm">
+          <div class="field-group">
+            <label>
+              New exercise name
+              <input type="text" name="exerciseName" placeholder="Bench press, Squat, Lat pulldown, etc." required />
+            </label>
+          </div>
+          <button type="submit" class="primary">Add exercise</button>
+        </form>
+        <p class="hint">Examples: Bench press, Squat, Deadlift, Incline DB press, Lat pulldown, Leg press, etc.</p>
+        <div class="exercise-list-wrapper">
+          <p class="muted" style="margin-top:0.5rem;">Current exercises:</p>
+          <ul id="exerciseList" class="exercise-list"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="dashboardSection" class="view">
+      <div class="grid two">
+        <div class="card">
+          <div class="summary-header">
+            <h2>
+              Summary
+              <span class="label">Overview</span>
+            </h2>
+            <label style="font-size:0.75rem; color:var(--text-muted);">
+              Window:
+              <select id="summaryDays">
+                <option value="7" selected>Last 7 days</option>
+                <option value="14">Last 14 days</option>
+                <option value="30">Last 30 days</option>
+              </select>
+            </label>
+          </div>
+          <div id="summaryStats">
+            <p class="muted">No data yet. Log some workouts, meals, and metrics first.</p>
+          </div>
+
+          <div class="chart-container">
+            <div class="summary-header" style="margin-bottom:0.4rem;">
+              <span style="font-size:0.9rem;">Exercise trend (est. 1RM)</span>
+              <select id="exerciseSelectDashboard">
+                <option value="">Select exercise</option>
+              </select>
+            </div>
+            <canvas id="exerciseChart"></canvas>
+            <p class="muted" id="exerciseChartHint" style="margin-top:0.3rem;">
+              Choose an exercise to see how your strength changes over time.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>
+            Suggestions & Weight Trend
+            <span class="label">Guidance</span>
+          </h2>
+          <ul id="suggestionsList" class="suggestions">
+            <li class="muted">Suggestions will appear here once there’s enough data.</li>
+          </ul>
+          <div class="chart-container">
+            <span style="font-size:0.9rem;">Bodyweight over time</span>
+            <canvas id="weightChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Chart.js for graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Your app logic -->
+<script src="gym_tracker/app.js"></script>
+</body>
+</html>
