@@ -18,7 +18,7 @@ Tech Stack
 - Chart.js
 - LocalStorage state management
 
-Live Demo
+Live Demo:
 https://gym-and-macro-tracker.netlify.app/
 
 Planned Improvements
