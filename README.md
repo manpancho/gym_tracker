@@ -1,6 +1,8 @@
 Gym & Nutrition Tracker
 
+
 A web-based fitness tracker that logs workouts, meals, daily macros, bodyweight, and provides trend analytics using Chart.js. Built with vanilla JavaScript, HTML/CSS, and localStorage for data persistence.
+
 
 Features
 - Workout logging with sets, reps, weight, RPE, and exercise presets
@@ -13,13 +15,16 @@ Features
 - Mobile-friendly UI
 - Local data saved in browser
 
+
 Tech Stack
 - HTML, CSS, JavaScript
 - Chart.js
 - LocalStorage state management
 
+
 Live Demo:
 https://gym-and-macro-tracker.netlify.app/
+
 
 Planned Improvements
 - User accounts
