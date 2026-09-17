@@ -113,7 +113,7 @@ window.addEventListener('DOMContentLoaded', () => {
     let contents;
     try { contents = storageBlocked ? localStorage.getItem(STORAGE_KEY) : JSON.stringify(state, null, 2); } catch { contents = JSON.stringify(state, null, 2); }
     const url = URL.createObjectURL(new Blob([contents || '{}'], { type: 'application/json' }));
-    const a = document.createElement('a'); a.href = url; a.download = 'gym-tracker-' + todayISO() + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); notify('Backup exported.');
+    const a = document.createElement('a'); a.href = url; a.download = 'gym-and-nutrition-tracker-' + todayISO() + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); notify('Backup exported.');
   });
   byId('importData').addEventListener('click', () => byId('importFile').click());
   byId('importFile').addEventListener('change', async e => {

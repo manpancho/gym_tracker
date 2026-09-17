@@ -642,7 +642,7 @@ function renderExerciseChart() {
       datasets: [{
         label: `Est. 1RM (${exerciseName})`,
         data: values,
-        borderColor: "#b6d96b", backgroundColor: "rgba(182,217,107,.08)", fill: true, pointRadius: 4, tension: 0.25
+        borderColor: "#5ed4cd", backgroundColor: "rgba(94,212,205,.08)", fill: true, pointRadius: 4, tension: 0.25
       }]
     },
     options: {
@@ -715,7 +715,7 @@ function renderWeightChart() {
       datasets: [{
         label: "Bodyweight",
         data: values,
-        borderColor: "#b6d96b", backgroundColor: "rgba(182,217,107,.08)", fill: true, pointRadius: 4, tension: 0.25
+        borderColor: "#5ed4cd", backgroundColor: "rgba(94,212,205,.08)", fill: true, pointRadius: 4, tension: 0.25
       }]
     },
     options: {

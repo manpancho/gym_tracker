@@ -9,7 +9,7 @@
     return value >= localDate(cutoff) && value <= localDate(now);
   }
   function normalize(input) {
-    if (!input || typeof input !== 'object' || !['workouts', 'meals', 'metrics'].every(key => Array.isArray(input[key]))) throw Error('Not a Gym Tracker backup.');
+    if (!input || typeof input !== 'object' || !['workouts', 'meals', 'metrics'].every(key => Array.isArray(input[key]))) throw Error('Not a Gym and Nutrition Tracker backup.');
     const data = JSON.parse(JSON.stringify(input));
     for (const key of ['exercises', 'mealPresets']) if (data[key] !== undefined && !Array.isArray(data[key])) throw Error('Invalid ' + key);
     const numeric = (item, keys, nullable = false) => keys.forEach(key => {

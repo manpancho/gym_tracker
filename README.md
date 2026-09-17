@@ -1,4 +1,4 @@
-# Gym & Nutrition Tracker
+# Gym and Nutrition Tracker
 
 A personal fitness dashboard built with **HTML, CSS, and vanilla JavaScript**. Log workouts, meals, and recovery metrics in one responsive, accessible front-end application.
 
@@ -69,6 +69,6 @@ The browser suite uses isolated temporary browser data. It checks workout/meal c
 
 ## Design and development
 
-The interface uses a charcoal and lime palette, a desktop sidebar, scrollable mobile navigation, visible keyboard focus, labeled inputs, save announcements, reduced-motion support, and useful empty states. Existing tracking flows were improved rather than replaced with a new framework.
+The interface uses a teal and gray palette, a desktop sidebar, scrollable mobile navigation, visible keyboard focus, labeled inputs, save announcements, reduced-motion support, and useful empty states. Existing tracking flows were improved rather than replaced with a new framework.
 
 Developed iteratively with AI-assisted code review, debugging, UI/UX iteration, and regression testing. This is a **client-side/front-end project**. Cloud authentication, synchronization, and PWA functionality remain future work.

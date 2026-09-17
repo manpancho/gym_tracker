@@ -2,15 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Gym Tracker — Your daily progress</title>
+  <title>Gym and Nutrition Tracker — Your daily progress</title>
   <meta name="description" content="Your personal space for training, nutrition, and daily progress. A private, browser-based fitness tracker." />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" type="image/svg+xml" href="gym_tracker/favicon.svg" />
+<meta name="theme-color" content="#15191c" />
 <link rel="stylesheet" href="gym_tracker/style_gym.css" />
 </head>
 <body>
   <a class="skip-link" href="#mainContent">Skip to content</a>
   <aside class="sidebar">
-    <a class="brand" href="#dashboardSection"><span class="brand-mark">g.</span><span>gym tracker<span class="brand-caption">BUILD YOUR EVERYDAY</span></span></a>
+    <a class="brand" href="#dashboardSection"><img class="brand-mark" src="gym_tracker/favicon.svg" alt="" width="41" height="43" /><span class="brand-name">Gym and Nutrition Tracker<span class="brand-caption">BUILD YOUR EVERYDAY</span></span></a>
     <p class="nav-caption">YOUR WORKSPACE</p>
     <nav aria-label="Main navigation">
       <button class="active" data-section="dashboardSection"><span aria-hidden="true">▦</span> Overview</button>
@@ -306,8 +308,8 @@
         </div>
       </div>
     </section>
-    <section id="settingsSection" class="view"><div class="grid two"><div class="card"><h2>Daily targets <span class="label">PERSONALIZE</span></h2><p class="muted">Set your own calorie and protein targets. Leave blank to track without a target.</p><form id="goalsForm"><label>Calories (kcal)<input name="calories" type="number" min="1" step="1" /></label><label>Protein (g)<input name="protein" type="number" min="1" step="1" /></label><button class="primary">Save targets</button></form></div><div class="card"><h2>Your data, in your hands</h2><p class="muted">Entries stay in this browser on this device. Export a backup before clearing browser data or moving to another device.</p><div class="meal-actions"><button id="exportData" class="primary">Export backup ↓</button><button id="importData">Import backup ↑</button><input id="importFile" type="file" accept=".json,application/json" hidden /></div><p class="hint">Import replaces your current tracker after confirmation. Only import a Gym Tracker JSON backup.</p></div></div></section>
-    <footer>GYM TRACKER <span>A little progress, every day.</span><span>Stored on this device</span></footer>
+    <section id="settingsSection" class="view"><div class="grid two"><div class="card"><h2>Daily targets <span class="label">PERSONALIZE</span></h2><p class="muted">Set your own calorie and protein targets. Leave blank to track without a target.</p><form id="goalsForm"><label>Calories (kcal)<input name="calories" type="number" min="1" step="1" /></label><label>Protein (g)<input name="protein" type="number" min="1" step="1" /></label><button class="primary">Save targets</button></form></div><div class="card"><h2>Your data, in your hands</h2><p class="muted">Entries stay in this browser on this device. Export a backup before clearing browser data or moving to another device.</p><div class="meal-actions"><button id="exportData" class="primary">Export backup ↓</button><button id="importData">Import backup ↑</button><input id="importFile" type="file" accept=".json,application/json" hidden /></div><p class="hint">Import replaces your current tracker after confirmation. Only import a Gym and Nutrition Tracker JSON backup.</p></div></div></section>
+    <footer>Gym and Nutrition Tracker <span>A little progress, every day.</span><span>Stored on this device</span></footer>
   </main>
 
   <!-- Chart.js for graphs -->

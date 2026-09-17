@@ -1,14 +1,14 @@
 /* Design tokens */
 :root{
   color-scheme:dark;
-  --bg:#111411;
-  --card:#1a1e1a;
-  --accent:#c0e583;
-  --accent-soft:#2d3923;
-  --text-main:#f0f2e9;
-  --text-muted:#a0aa9b;
+  --bg:#15191c;
+  --card:#1e2428;
+  --accent:#5ed4cd;
+  --accent-soft:#233d40;
+  --text-main:#eff4f5;
+  --text-muted:#a6b2b9;
   --danger:#ffb2a7;
-  --line:#30372e;
+  --line:#343e45;
   --font:Inter,"Segoe UI",Arial,sans-serif
 }
 *{
@@ -46,8 +46,8 @@ a{
   color:var(--accent)
 }
 button{
-  background:#252b23;
-  border:1px solid #414a3c;
+  background:#2a3238;
+  border:1px solid #46545e;
   color:var(--text-main);
   border-radius:9px;
   padding:10px 15px;
@@ -55,23 +55,23 @@ button{
   transition:background .15s,border-color .15s
 }
 button:hover{
-  background:#35412d;
-  border-color:#69795b
+  background:#33494d;
+  border-color:#64918f
 }
 button.primary{
   background:var(--accent);
   border-color:var(--accent);
-  color:#202919;
+  color:#102b2d;
   font-weight:650;
   justify-self:start
 }
 button.primary:hover{
-  background:#d0eea3
+  background:#8ae5df
 }
 button.secondary{
   background:transparent;
   color:var(--text-main);
-  border-color:#47553e
+  border-color:#4d626b
 }
 .muted,.hint,small{
   color:var(--text-muted)
@@ -130,7 +130,7 @@ h3{
   inset:0 auto 0 0;
   padding:35px 22px;
   border-right:1px solid var(--line);
-  background:#161a15;
+  background:#191e22;
   display:flex;
   flex-direction:column
 }
@@ -141,14 +141,19 @@ h3{
   color:var(--text-main);
   text-decoration:none;
   font-weight:650;
-  font-size:21px;
-  letter-spacing:-.7px
+  font-size:16px;
+  line-height:1.25;
+  letter-spacing:-.3px
+}
+.brand-name{
+  min-width:0;
 }
 .brand-mark{
+  flex-shrink:0;
   display:grid;
   place-items:center;
   background:var(--accent);
-  color:#1e2917;
+  color:#102b2d;
   border-radius:12px;
   width:41px;
   height:43px;
@@ -163,7 +168,7 @@ h3{
   margin-top:3px
 }
 .nav-caption{
-  color:#89927f;
+  color:#95a3ac;
   margin:49px 12px 15px;
   font-size:9px
 }
@@ -190,16 +195,16 @@ nav button span{
 nav button.active{
   background:var(--accent-soft);
   color:var(--accent);
-  border-color:#415031
+  border-color:#3c676b
 }
 nav button:hover{
-  background:#252d20
+  background:#29363d
 }
 .sidebar-note{
   margin-top:auto;
   padding:22px 5px 0;
   font-size:11px;
-  color:#d3d8cc
+  color:#d3dce1
 }
 .sidebar-note p{
   font-size:11px;
@@ -236,7 +241,7 @@ main{
   border:1px solid var(--line);
   padding:9px 14px;
   border-radius:8px;
-  color:#c6ccbf;
+  color:#c6d1d8;
   font-size:12px;
   white-space:nowrap
 }
@@ -252,7 +257,7 @@ footer{
   padding:22px 0 5px;
   font-size:9px;
   letter-spacing:1.5px;
-  color:#9aa58e;
+  color:#9cabb4;
   display:flex;
   gap:20px
 }
@@ -269,14 +274,14 @@ footer span:last-child{
   overflow:hidden;
   display:flex;
   justify-content:space-between;
-  border:1px solid #3f4b32;
+  border:1px solid #3c595e;
   border-radius:15px;
-  background:#252e1f;
+  background:#24363c;
   min-height:244px;
   padding:30px 34px
 }
 .welcome-panel .eyebrow{
-  color:#c0d2a5;
+  color:#a4d5d4;
   font-size:9px
 }
 .welcome-panel h2{
@@ -287,7 +292,7 @@ footer span:last-child{
 }
 .welcome-panel p{
   font-size:13px;
-  color:#b8c3ac;
+  color:#b9cbd0;
   line-height:1.7;
   margin-bottom:20px
 }
@@ -297,7 +302,7 @@ footer span:last-child{
 .hero-secondary{
   background:transparent;
   border-color:transparent;
-  color:#d8e2cc;
+  color:#d1e6e8;
   margin-left:9px
 }
 .hero-art{
@@ -317,17 +322,17 @@ footer span:last-child{
   font-weight:850;
   font-style:italic;
   transform:rotate(-10deg);
-  color:#d7edb4;
+  color:#b0eeea;
   z-index:1
 }
 .hero-art i{
-  color:#91ac63
+  color:#5eb7b4
 }
 .orbit{
   position:absolute;
   width:210px;
   height:310px;
-  border:1px solid #657946;
+  border:1px solid #4f8b8e;
   border-radius:50%;
   transform:rotate(39deg)
 }
@@ -374,7 +379,7 @@ footer span:last-child{
   align-items:center;
   font-size:9px;
   letter-spacing:1.2px;
-  color:#b4beab
+  color:#b1c1ca
 }
 .stat-label>span{
   font-size:20px;
@@ -453,20 +458,20 @@ footer span:last-child{
   flex:1
 }
 .activity-day div{
-  background:#252c21;
-  border:1px solid #333d2b;
+  background:#2a343a;
+  border:1px solid #3c4a53;
   border-radius:9px;
   display:grid;
   place-items:center;
   aspect-ratio:1;
   max-width:43px;
   margin:9px auto;
-  color:#637058;
+  color:#82969f;
   font-size:20px
 }
 .activity-day.done div{
   background:var(--accent);
-  color:#25341b;
+  color:#133235;
   border-color:var(--accent)
 }
 .activity-day.today div{
@@ -510,7 +515,7 @@ footer span:last-child{
 }
 .summary-item{
   padding:12px;
-  background:#20271c;
+  background:#283239;
   border-radius:8px
 }
 .summary-item .label{
@@ -538,7 +543,7 @@ footer span:last-child{
   padding:0;
   list-style:none;
   font-size:12px;
-  color:#c2cbb9
+  color:#c1ced5
 }
 .suggestions li{
   padding:12px 0;
@@ -562,11 +567,11 @@ label{
   flex:1;
   min-width:100px;
   font-size:12px;
-  color:#b8c2ae
+  color:#bccad2
 }
 input,select{
-  background:#121710;
-  border:1px solid #3b4533;
+  background:#161e23;
+  border:1px solid #43535e;
   color:var(--text-main);
   border-radius:8px;
   min-height:44px;
@@ -575,7 +580,7 @@ input,select{
   min-width:0
 }
 input::placeholder{
-  color:#78866d
+  color:#8b9ca6
 }
 input:focus,select:focus{
   border-color:var(--accent)
@@ -663,7 +668,7 @@ input:focus,select:focus{
   align-items:center!important;
   text-align:center;
   padding:35px!important;
-  border:1px dashed #455139!important;
+  border:1px dashed #4b646e!important;
   border-radius:10px;
   color:var(--text-muted)
 }
@@ -688,8 +693,8 @@ input:focus,select:focus{
   left:calc(50% + 100px);
   transform:translateX(-50%);
   z-index:30;
-  background:#d1ebad;
-  color:#1e2c14;
+  background:#a1e8e1;
+  color:#102e30;
   padding:13px 22px;
   box-shadow:0 6px 30px #0005;
   border-radius:10px;
@@ -748,7 +753,7 @@ input:focus,select:focus{
     border-bottom:1px solid var(--line)
   }
   .brand{
-    font-size:18px
+    font-size:16px
   }
   .brand-mark{
     width:33px;
