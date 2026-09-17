@@ -1,0 +1,11 @@
+{
+  "name": "gym-nutrition-tracker",
+  "version": "2.0.0",
+  "private": true,
+  "description": "A client-side gym and nutrition tracker built with HTML, CSS, and JavaScript.",
+  "scripts": {
+    "start": "node tools/serve.cjs",
+    "test": "node tools/check.cjs",
+    "test:browser": "node tools/browser-check.cjs"
+  }
+}
