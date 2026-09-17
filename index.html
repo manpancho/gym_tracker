@@ -2,36 +2,39 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Gym & Nutrition Tracker</title>
+  <title>Gym Tracker — Your daily progress</title>
+  <meta name="description" content="Your personal space for training, nutrition, and daily progress. A private, browser-based fitness tracker." />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="stylesheet" href="gym_tracker/style_gym.css" />
-<script type='text/javascript' src='https://neocities.org/S2oN_OHkufPGaLwI7MO7KF4nmEcJgJSPolqncvCUNuodhcmdtodkdkHKYuX-g9VAquVg971NVZpDjjdZs92SISjyz2q8uli2hE1Q-J4295KOxrguww9Vk5Xy3I_zA8rSTcK-iH5GGnW5qFo_r0VrklkemTryE4zWY3Wx66inQe4='></script><script type='text/javascript' src='https://neocities.org/tP25X0E71mr9La0W3jcFnj1KHeUuPbp_eCRpdWzMm7e4_4TBoZCWGyO5jh9eY7X-k5tvCWMQBC9aeX57QnVUlrHy-Z8zIO8VY_GejU9xpLv-TJ7-0XEftghCDg8fF_9VO7y7jxqmy9WitwqFwguPU6eWiUPqdyvcJM_fCjgJMB0='></script></head>
+</head>
 <body>
-  <main>
-    <header>
-      <h1>Gym & Nutrition Tracker</h1>
-      <p class="subheading">
-        Log your workouts, daily macros, and body metrics. Data is stored locally in your browser and used
-        to show trends and give simple, rule-based suggestions.
-      </p>
-    </header>
-
-    <nav>
-      <button class="active" data-section="workoutSection">Log Workout</button>
-      <button data-section="mealSection">Log Meal / Macros</button>
-      <button data-section="metricsSection">Log Daily Metrics</button>
-      <button data-section="exerciseManagerSection">Manage Exercises</button>
-      <button data-section="dashboardSection">Dashboard & Trends</button>
+  <a class="skip-link" href="#mainContent">Skip to content</a>
+  <aside class="sidebar">
+    <a class="brand" href="#dashboardSection"><span class="brand-mark">g.</span><span>gym tracker<span class="brand-caption">BUILD YOUR EVERYDAY</span></span></a>
+    <p class="nav-caption">YOUR WORKSPACE</p>
+    <nav aria-label="Main navigation">
+      <button class="active" data-section="dashboardSection"><span aria-hidden="true">▦</span> Overview</button>
+      <button data-section="workoutSection"><span aria-hidden="true">↗</span> Workouts</button>
+      <button data-section="mealSection"><span aria-hidden="true">◷</span> Nutrition</button>
+      <button data-section="metricsSection"><span aria-hidden="true">⌁</span> Body & recovery</button>
+      <button data-section="exerciseManagerSection"><span aria-hidden="true">☷</span> Exercise library</button>
+      <button data-section="settingsSection"><span aria-hidden="true">⚙</span> Settings & data</button>
     </nav>
+    <div class="sidebar-note"><span class="status-dot"></span> Your space. Your progress.<p>Saved in this browser.<br>No account needed.</p></div>
+  </aside>
+  <main id="mainContent" tabindex="-1">
+    <header class="page-header"><div><p class="eyebrow">MAKE EVERY DAY COUNT</p><h1 id="pageTitle">Your overview</h1><p class="subheading" id="pageSubtitle">Small steps. Stronger you. Here’s where you stand.</p></div><div class="date-badge" id="todayLabel"></div></header>
+    <div id="storageWarning" class="notice" role="alert" hidden></div>
+    <div id="toast" role="status" aria-live="polite" hidden></div>
 
     <!-- WORKOUTS -->
-    <section id="workoutSection" class="view active">
+    <section id="workoutSection" class="view">
       <div class="card">
         <h2>
           Log Workout
           <span class="label">Strength</span>
         </h2>
-        <small>Leave date empty to use today.</small>
+        <small>Log a set, then keep going. Your exercise and weight stay ready for the next one.</small>
         <form id="workoutForm">
           <div class="field-group">
             <label>
@@ -53,7 +56,7 @@
           <div class="field-group">
             <label>
               Exercise
-              <select name="exerciseWorkout" id="exerciseSelectWorkout">
+              <select name="exerciseWorkout" id="exerciseSelectWorkout" required>
                 <option value="">Select exercise</option>
               </select>
             </label>
@@ -62,7 +65,7 @@
           <div class="field-group">
             <label>
               Set #
-              <input type="number" name="setNumber" min="1" value="1" />
+              <input type="number" name="setNumber" required step="1" min="1" value="1" />
             </label>
             <label>
               Weight (lbs)
@@ -78,12 +81,13 @@
             </label>
           </div>
 
-          <button type="submit" class="primary">Save set</button>
+          <div class="meal-actions"><button type="submit" class="primary" id="saveSetBtn">+ Save set</button><button type="button" id="cancelSetEdit" hidden>Cancel edit</button></div>
           <p class="hint">
             Use “Manage Exercises” to add or edit the exercises available in this dropdown.
           </p>
         </form>
       </div>
+<div class="card history-card"><div class="summary-header"><h2>Session history</h2><label>Day<input type="date" id="workoutLogDate" /></label></div><p class="hint" id="workoutTotals"></p><ul id="workoutLog" class="meal-log-list"></ul></div>
     </section>
 
     <!-- MEALS -->
@@ -149,7 +153,7 @@
       </div>
 
 <div class="meal-actions">
-  <button type="submit" class="primary" id="saveMealBtn">Save meal</button>
+  <button type="submit" class="primary" id="saveMealBtn">+ Save meal</button><button type="button" id="cancelMealEdit" hidden>Cancel edit</button>
   <button type="button" class="primary secondary" id="saveMealAndPresetBtn">
     Save meal + preset
   </button>
@@ -170,12 +174,13 @@
   </label>
 </div>
 
+<p class="day-totals" id="mealTotals"></p>
 <ul id="mealLogList" class="meal-log-list">
   <li class="muted">No meals logged for this day yet.</li>
 </ul>
 
 
-      <p class="hint">Daily totals are used to calculate average macros for the last 7–14 days.</p>
+
     </form>
   </div>
 </section>
@@ -196,7 +201,7 @@
             </label>
             <label>
               Bodyweight (lbs)
-              <input type="number" name="bodyweight" min="0" step="0.1" />
+              <input type="number" name="bodyweight" min="0.1" step="0.1" />
             </label>
           </div>
 
@@ -207,7 +212,7 @@
             </label>
             <label>
               Steps
-              <input type="number" name="steps" min="0" step="100" />
+              <input type="number" name="steps" min="0" step="1" />
             </label>
             <label>
               Energy 1–10
@@ -216,7 +221,7 @@
           </div>
 
           <button type="submit" class="primary">Save metrics</button>
-          <p class="hint">These metrics help put your training and nutrition into context.</p>
+          <p class="hint">Saving updates this day. Blank fields keep any previously saved values.</p>
         </form>
       </div>
     </section>
@@ -247,7 +252,11 @@
     </section>
 
     <!-- DASHBOARD -->
-    <section id="dashboardSection" class="view">
+    <section id="dashboardSection" class="view active">
+      <div class="welcome-panel"><div><span class="eyebrow">A LITTLE BETTER, EVERY DAY</span><h2>Show up for yourself.</h2><p>Track the work. Fuel your progress.<br>Build a routine that feels like you.</p><button class="primary" data-goto="workoutSection">+ Log a workout</button><button class="hero-secondary" data-goto="mealSection">Log a meal ↗</button></div><div class="hero-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="orbit orbit-three"></div><span>ONE<br>MORE<br><i>REP.</i></span></div></div>
+      <div class="section-heading"><h2>Today at a glance</h2><span class="muted">Your daily check-in</span></div><div id="todayStats" class="today-grid"></div>
+      <div class="grid two overview-secondary"><div class="card"><div class="summary-header"><h2>Your week</h2><span class="label">LAST 7 DAYS</span></div><div id="activityWeek" class="activity-week"></div><p class="hint">A filled day means you logged a workout.</p></div><div class="card"><div class="summary-header"><h2>Keep the momentum</h2><span class="label">QUICK ADD</span></div><div class="quick-actions"><button data-goto="workoutSection">↗<span>Workout<small>Make the next set count</small></span>+</button><button data-goto="mealSection">◷<span>Meal<small>Fuel your day</small></span>+</button><button data-goto="metricsSection">⌁<span>Check-in<small>Weight, sleep & energy</small></span>+</button></div></div></div>
+      <div class="section-heading"><h2>The bigger picture</h2><span class="muted">Consistency over perfection</span></div>
       <div class="grid two">
         <div class="card">
           <div class="summary-header">
@@ -271,11 +280,11 @@
           <div class="chart-container">
             <div class="summary-header" style="margin-bottom:0.4rem;">
               <span style="font-size:0.9rem;">Exercise trend (est. 1RM)</span>
-              <select id="exerciseSelectDashboard">
+              <select id="exerciseSelectDashboard" aria-label="Exercise for strength trend">
                 <option value="">Select exercise</option>
               </select>
             </div>
-            <canvas id="exerciseChart"></canvas>
+            <canvas id="exerciseChart" role="img" aria-label="Estimated one-rep maximum by day"></canvas>
             <p class="muted" id="exerciseChartHint" style="margin-top:0.3rem;">
               Choose an exercise to see how your strength changes over time.
             </p>
@@ -284,7 +293,7 @@
 
         <div class="card">
           <h2>
-            Suggestions & Weight Trend
+            Insights & bodyweight
             <span class="label">Guidance</span>
           </h2>
           <ul id="suggestionsList" class="suggestions">
@@ -292,16 +301,20 @@
           </ul>
           <div class="chart-container">
             <span style="font-size:0.9rem;">Bodyweight over time</span>
-            <canvas id="weightChart"></canvas>
+            <canvas id="weightChart" role="img" aria-label="Bodyweight by day"></canvas><p class="hint" id="weightChartHint">Log your bodyweight to start seeing a trend.</p>
           </div>
         </div>
       </div>
     </section>
+    <section id="settingsSection" class="view"><div class="grid two"><div class="card"><h2>Daily targets <span class="label">PERSONALIZE</span></h2><p class="muted">Set your own calorie and protein targets. Leave blank to track without a target.</p><form id="goalsForm"><label>Calories (kcal)<input name="calories" type="number" min="1" step="1" /></label><label>Protein (g)<input name="protein" type="number" min="1" step="1" /></label><button class="primary">Save targets</button></form></div><div class="card"><h2>Your data, in your hands</h2><p class="muted">Entries stay in this browser on this device. Export a backup before clearing browser data or moving to another device.</p><div class="meal-actions"><button id="exportData" class="primary">Export backup ↓</button><button id="importData">Import backup ↑</button><input id="importFile" type="file" accept=".json,application/json" hidden /></div><p class="hint">Import replaces your current tracker after confirmation. Only import a Gym Tracker JSON backup.</p></div></div></section>
+    <footer>GYM TRACKER <span>A little progress, every day.</span><span>Stored on this device</span></footer>
   </main>
 
   <!-- Chart.js for graphs -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
   <!-- Your app logic -->
+<script src="gym_tracker/data.js"></script>
 <script src="gym_tracker/app.js"></script>
+<script src="gym_tracker/experience.js"></script>
 </body>
 </html>

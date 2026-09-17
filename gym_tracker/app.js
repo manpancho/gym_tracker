@@ -2,9 +2,6 @@
 // CONFIG & GLOBAL STATE
 // ==================================================
 const STORAGE_KEY = "fitnessTracker_v4";
-const TARGET_PROTEIN = 120;        // g/day
-const TARGET_CALORIES = 1800;      // kcal/day
-const MAINTENANCE_CALORIES = 2200; // kcal/day
 
 let state = {
   workouts: [],
@@ -17,6 +14,7 @@ let state = {
 let exerciseChart = null;
 let weightChart   = null;
 let currentMealEditIndex = null; // index in state.meals, or null when not editing
+let persistedSnapshot;
 
 // ==================================================
 // STORAGE (LOAD / SAVE LOCALSTORAGE)
@@ -24,38 +22,25 @@ let currentMealEditIndex = null; // index in state.meals, or null when not editi
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === "object") {
-        state.workouts = parsed.workouts || [];
-        state.meals    = parsed.meals || [];
-        state.metrics  = parsed.metrics || [];
-        state.mealPresets = parsed.mealPresets || [];
-
-        // If exercises field exists, trust it (so delete/rename works).
-        // If it's missing (old version), derive once from workouts.
-        if ("exercises" in parsed) {
-          state.exercises = parsed.exercises || [];
-        } else {
-          const fromWorkouts = new Set(
-            state.workouts
-              .map(w => (w.exercise || "").trim())
-              .filter(Boolean)
-          );
-          state.exercises = Array.from(fromWorkouts);
-        }
-      }
-    }
+    if (raw) state = TrackerData.normalize(JSON.parse(raw));
+    else state.exercises = ['Bench press', 'Squat', 'Deadlift', 'Overhead press', 'Lat pulldown', 'Romanian deadlift', 'Dumbbell row'];
+    persistedSnapshot = JSON.stringify(state);
   } catch (err) {
-    console.error("Error loading state:", err);
+    showStorageWarning('Your saved data could not be loaded. Export the original data before making changes.');
+    storageBlocked = true;
   }
 }
 
+
 function saveState() {
+  if (storageBlocked) throw new Error('Saving blocked to protect unreadable data.');
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    persistedSnapshot = JSON.stringify(state);
   } catch (err) {
-    console.error("Error saving state:", err);
+    if (persistedSnapshot) state = JSON.parse(persistedSnapshot);
+    showStorageWarning('Changes could not be saved. Your previous entries are safe; keep your form open and try again. Browser storage may be full or unavailable.');
+    throw err;
   }
 }
 
@@ -63,28 +48,13 @@ function saveState() {
 // ==================================================
 // UTILITY FUNCTIONS
 // ==================================================
-function todayISO() {
-  // Returns YYYY-MM-DD in the user's local timezone
-  return new Date().toLocaleDateString("en-CA");
-}
+function todayISO() { return TrackerData.localDate(); }
 
-function parseNumber(value) {
-  const num = Number(value);
-  return isNaN(num) ? null : num;
-}
 
-function inLastNDays(dateString, n) {
-  if (!dateString) return false;
-  const d = new Date(dateString);
-  if (isNaN(d.getTime())) return false;
+function parseNumber(value) { return TrackerData.number(value); }
 
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  const cutoff = new Date(today.getTime() - (n - 1) * 24 * 60 * 60 * 1000);
 
-  d.setHours(0,0,0,0);
-  return d >= cutoff && d <= today;
-}
+function inLastNDays(dateString, n) { return TrackerData.inWindow(dateString, n); }
 
 
 // ==================================================
@@ -95,6 +65,8 @@ function updateExercisePresetsUI() {
   const dashboardSelect = document.getElementById("exerciseSelectDashboard");
   const listEl          = document.getElementById("exerciseList");
 
+  const selectedWorkout = workoutSelect.value;
+  const selectedDashboard = dashboardSelect.value;
   const exercises = [...state.exercises].sort((a, b) => a.localeCompare(b));
 
   // Workout dropdown
@@ -115,6 +87,10 @@ function updateExercisePresetsUI() {
     dashboardSelect.appendChild(opt);
   });
 
+  const historical = [...new Set(state.workouts.map(w => w.exercise))].filter(n => !exercises.includes(n));
+  historical.forEach(name => dashboardSelect.add(new Option(name + ' (archived)', name)));
+  workoutSelect.value = selectedWorkout;
+  dashboardSelect.value = selectedDashboard;
   // List in Manage section
   listEl.innerHTML = "";
   if (!exercises.length) {
@@ -124,10 +100,10 @@ function updateExercisePresetsUI() {
       const li = document.createElement("li");
       li.dataset.name = name;
       li.innerHTML = `
-        <span class="exercise-list-name">${name}</span>
+        <span class="exercise-list-name">${escapeHTML(name)}</span>
         <span class="exercise-list-actions">
-          <button type="button" data-action="edit" data-name="${name}">Edit</button>
-          <button type="button" class="delete" data-action="delete" data-name="${name}">Delete</button>
+          <button type="button" data-action="edit" data-name="${escapeHTML(name)}">Edit</button>
+          <button type="button" class="delete" data-action="delete" data-name="${escapeHTML(name)}">Delete</button>
         </span>
       `;
       listEl.appendChild(li);
@@ -138,7 +114,7 @@ function updateExercisePresetsUI() {
 function addExerciseName(name) {
   const clean = (name || "").trim();
   if (!clean) return;
-  if (!state.exercises.includes(clean)) {
+  if (!state.exercises.some(n => n.toLowerCase() === clean.toLowerCase())) {
     state.exercises.push(clean);
     saveState();
     updateExercisePresetsUI();
@@ -159,7 +135,7 @@ function handleExerciseListClick(event) {
     const clean = newName.trim();
     if (!clean || clean === name) return;
     if (state.exercises.includes(clean)) {
-      alert("An exercise with that name already exists.");
+      notify("An exercise with that name already exists.");
       return;
     }
 
@@ -177,15 +153,13 @@ function handleExerciseListClick(event) {
   if (action === "delete") {
     const usedCount = state.workouts.filter(w => w.exercise === name).length;
     const warning = usedCount
-      ? `Delete "${name}"? This will also remove ${usedCount} logged workout set(s) for this exercise.`
+      ? `Delete "${name}"? Your ${usedCount} logged workout set(s) will be kept in history.`
       : `Delete "${name}" from your exercise list?`;
 
     if (!confirm(warning)) return;
 
     state.exercises = state.exercises.filter(n => n !== name);
-    if (usedCount) {
-      state.workouts = state.workouts.filter(w => w.exercise !== name);
-    }
+
     saveState();
     updateExercisePresetsUI();
     renderSummaryAndCharts();
@@ -229,7 +203,7 @@ function handleSaveMealPreset(showAlert = true) {
 
   const name = entry.food;
   if (!name) {
-    alert("Enter a description before saving as a preset.");
+    notify("Enter a description before saving as a preset.");
     return;
   }
 
@@ -249,39 +223,21 @@ function handleSaveMealPreset(showAlert = true) {
 
   saveState();
   updateMealPresetsUI();
-  if (showAlert) alert("Preset saved.");
+  if (showAlert) notify("Preset saved.");
 }
 
 function handleSaveMealAndPreset() {
-  const form = document.getElementById("mealForm");
   const entry = readMealForm();
   if (!entry) return;
-
-  if (!entry.calories && !entry.protein && !entry.carbs && !entry.fat) {
-    alert("Enter at least calories or macros.");
-    return;
-  }
-
-  // 1) Save meal to log as new
-  currentMealEditIndex = null;
-  state.meals.push(entry);
-
-  // 2) Save as preset too (no duplicate alert)
+  if (!entry.food) { notify('Add a description to name your preset.'); return; }
   handleSaveMealPreset(false);
-
-  saveState();
-  form.reset();
-  setDefaultDateInputs();
-  renderSummaryAndCharts();
-  renderMealLog();
-  alert("Meal and preset saved.");
+  handleMealSubmit({ preventDefault() {} });
 }
-
 
 
 function readMealForm() {
   const form = document.getElementById("mealForm");
-  if (!form) return null;
+  if (!form || !form.reportValidity()) return null;
 
   return {
     date:     form.mealDate.value || todayISO(),
@@ -324,7 +280,7 @@ function renderMealLog() {
     return `
       <li data-index="${m.index}">
         <div class="meal-log-main">
-          <div class="meal-log-title">${mealLabel}: ${m.food || "(no description)"}</div>
+          <div class="meal-log-title">${escapeHTML(mealLabel)}: ${escapeHTML(m.food || "(no description)")}</div>
           <div class="meal-log-sub">
             ${kcal} kcal · ${prot}P / ${carbs}C / ${fat}F
           </div>
@@ -347,7 +303,7 @@ function handleWorkoutSubmit(event) {
 
   const exerciseName = form.exerciseWorkout.value;
   if (!exerciseName) {
-    alert("Please select an exercise from the dropdown.");
+    notify("Please select an exercise from the dropdown.");
     return;
   }
 
@@ -361,17 +317,23 @@ function handleWorkoutSubmit(event) {
     rpe:         parseNumber(form.rpe.value)
   };
 
-  if (!entry.reps || !entry.weight) {
-    alert("Please enter reps and weight.");
+  if (entry.reps < 1 || entry.weight < 0) {
+    notify("Please enter reps and weight.");
     return;
   }
 
   addExerciseName(exerciseName);
 
-  state.workouts.push(entry);
+  if (currentSetEditIndex !== null) state.workouts[currentSetEditIndex] = entry;
+  else state.workouts.push(entry);
   saveState();
-  form.reset();
+  currentSetEditIndex = null;
+  document.getElementById('workoutLogDate').value = entry.date;
+  form.setNumber.value = entry.setNumber + 1;
+  document.getElementById('saveSetBtn').textContent = '+ Save set';
+  document.getElementById('cancelSetEdit').hidden = true;
   renderSummaryAndCharts();
+  notify('Set saved. Ready for the next one.');
 }
 
 function handleMealSubmit(event) {
@@ -381,7 +343,7 @@ function handleMealSubmit(event) {
   if (!entry) return;
 
   if (!entry.calories && !entry.protein && !entry.carbs && !entry.fat) {
-    alert("Enter at least calories or macros.");
+    notify("Enter at least calories or macros.");
     return;
   }
 
@@ -393,17 +355,21 @@ function handleMealSubmit(event) {
     ) {
       state.meals[currentMealEditIndex] = entry;
     }
-    currentMealEditIndex = null;
   } else {
     // New meal
     state.meals.push(entry);
   }
 
   saveState();
+  currentMealEditIndex = null;
   form.reset();
+  form.mealDate.value = entry.date;
+  document.getElementById("mealLogDateFilter").value = entry.date;
+  setMealEditUI(false);
   setDefaultDateInputs();
   renderSummaryAndCharts();
   renderMealLog();
+  notify("Meal saved.");
 }
 
 
@@ -426,14 +392,17 @@ function handleMetricsSubmit(event) {
     entry.steps === null &&
     entry.energy === null
   ) {
-    alert("Enter at least one metric.");
+    notify("Enter at least one metric.");
     return;
   }
 
-  state.metrics.push(entry);
+  const existing = state.metrics.find(m => m.date === entry.date);
+  if (existing) Object.keys(entry).forEach(key => { if (entry[key] !== null) existing[key] = entry[key]; });
+  else state.metrics.push(entry);
   saveState();
-  form.reset();
+  setDefaultDateInputs();
   renderSummaryAndCharts();
+  notify("Daily check-in saved.");
 }
 
 function handleExerciseManagerSubmit(event) {
@@ -462,6 +431,7 @@ function handleMealLogClick(event) {
     if (!form || !meal) return;
 
     currentMealEditIndex = index;
+    setMealEditUI(true);
 
     form.mealDate.value  = meal.date || todayISO();
     form.mealType.value  = meal.meal || "Meal";
@@ -485,6 +455,8 @@ function handleMealLogClick(event) {
       setDefaultDateInputs();
     }
 
+    if (currentMealEditIndex !== null && currentMealEditIndex > index) currentMealEditIndex--;
+    if (currentMealEditIndex === null) setMealEditUI(false);
     state.meals.splice(index, 1);
     saveState();
     renderMealLog();
@@ -513,6 +485,8 @@ function computeSummary(nDays) {
   meals.forEach(m => dateSet.add(m.date));
   metrics.forEach(m => dateSet.add(m.date));
   const dayCount = dateSet.size || nDays;
+  const mealDays = new Set(meals.map(m => m.date)).size;
+  const workoutDays = new Set(workouts.map(w => w.date)).size;
 
   let totalCals = 0, totalProtein = 0, totalCarbs = 0, totalFat = 0;
   meals.forEach(m => {
@@ -538,88 +512,24 @@ function computeSummary(nDays) {
   return {
     nDays,
     dayCount,
-    avgCalories:  meals.length ? totalCals    / dayCount : null,
-    avgProtein:   meals.length ? totalProtein / dayCount : null,
-    avgCarbs:     meals.length ? totalCarbs   / dayCount : null,
-    avgFat:       meals.length ? totalFat     / dayCount : null,
-    avgVolume:    workouts.length ? totalVolume / dayCount : null,
+    avgCalories:  meals.length ? totalCals    / mealDays : null,
+    avgProtein:   meals.length ? totalProtein / mealDays : null,
+    avgCarbs:     meals.length ? totalCarbs   / mealDays : null,
+    avgFat:       meals.length ? totalFat     / mealDays : null,
+    avgVolume:    workouts.length ? totalVolume / workoutDays : null,
     avgBodyweight: bwCount ? bwSum / bwCount : null
   };
 }
 
-function buildSuggestions(summary) {
-  if (!summary) return ["Not enough data yet to generate suggestions."];
-
-  const s = summary;
-  const suggestions = [];
-
-  if (s.avgProtein !== null) {
-    if (s.avgProtein < TARGET_PROTEIN * 0.9) {
-      suggestions.push(
-        `Average protein (~${s.avgProtein.toFixed(0)} g) is below your target (${TARGET_PROTEIN} g). ` +
-        `Consider adding a higher-protein meal or shake.`
-      );
-    } else if (s.avgProtein > TARGET_PROTEIN * 1.1) {
-      suggestions.push(
-        `Average protein (~${s.avgProtein.toFixed(0)} g) is above your target. ` +
-        `This is fine if digestion and recovery feel good.`
-      );
-    } else {
-      suggestions.push(
-        `Protein intake (~${s.avgProtein.toFixed(0)} g) is within your target range. Keep it consistent.`
-      );
-    }
-  }
-
-  if (s.avgCalories !== null) {
-    const deficit = MAINTENANCE_CALORIES - s.avgCalories;
-    if (deficit > 700) {
-      suggestions.push(
-        `Average calories (~${s.avgCalories.toFixed(0)} kcal) are likely putting you in a large deficit ` +
-        `(~${deficit.toFixed(0)} kcal vs estimated maintenance ${MAINTENANCE_CALORIES}). ` +
-        `Consider increasing calories slightly to support recovery.`
-      );
-    } else if (deficit < 200) {
-      suggestions.push(
-        `Average calories (~${s.avgCalories.toFixed(0)} kcal) are close to or above maintenance. ` +
-        `If fat loss is a goal, consider tightening the deficit a bit.`
-      );
-    } else {
-      suggestions.push(
-        `Calorie intake (~${s.avgCalories.toFixed(0)} kcal) suggests a moderate deficit. ` +
-        `This is generally sustainable for slow cutting or recomposition.`
-      );
-    }
-  }
-
-  if (s.avgVolume !== null) {
-    if (s.avgVolume < 2000) {
-      suggestions.push(
-        `Average training volume (~${s.avgVolume.toFixed(0)} total lbs per day) is on the lower side. ` +
-        `If you feel good, you could experiment with adding a set or another exercise.`
-      );
-    } else if (s.avgVolume > 6000) {
-      suggestions.push(
-        `Average training volume (~${s.avgVolume.toFixed(0)} total lbs per day) is quite high. ` +
-        `Monitor fatigue and consider a deload week if recovery feels poor.`
-      );
-    } else {
-      suggestions.push(
-        `Training volume (~${s.avgVolume.toFixed(0)} total lbs per day) is in a moderate range. ` +
-        `Focus on progressive overload and good form.`
-      );
-    }
-  }
-
-  if (s.avgBodyweight !== null) {
-    suggestions.push(
-      `Average bodyweight over the window is about ${s.avgBodyweight.toFixed(1)} lbs. ` +
-      `Compare this with your goal trend (up, down, or stable).`
-    );
-  }
-
-  return suggestions.length ? suggestions : ["Not enough data yet to generate suggestions."];
+function buildSuggestions(s) {
+  if (!s) return ['Your story starts with one entry. Log a workout, meal, or check-in.'];
+  const notes = [s.dayCount + ' days with entries in this ' + s.nDays + '-day window.'];
+  if (s.avgCalories !== null) notes.push('Nutrition averages include only days with logged meals. Incomplete days can lower your averages.');
+  if (s.avgProtein !== null && state.goals?.protein) notes.push('Average protein: ' + Math.round(s.avgProtein) + ' g compared with your ' + state.goals.protein + ' g target.');
+  if (s.avgBodyweight !== null) notes.push('Average bodyweight: ' + s.avgBodyweight.toFixed(1) + ' lbs. Look at the longer trend, not a single day.');
+  return notes;
 }
+
 
 function renderSummary() {
   const daysSelect = document.getElementById("summaryDays");
@@ -643,9 +553,9 @@ function renderSummary() {
     return val === null ? "—" : `${val.toFixed(decimals)}${suffix}`;
   }
 
-  items.push({ label: "Avg calories / day", value: fmt(s.avgCalories, " kcal") });
-  items.push({ label: "Avg protein / day",  value: fmt(s.avgProtein, " g") });
-  items.push({ label: "Avg training volume / day", value: fmt(s.avgVolume, " lbs", 0) });
+  items.push({ label: "Calories / logged day", value: fmt(s.avgCalories, " kcal") });
+  items.push({ label: "Protein / logged day",  value: fmt(s.avgProtein, " g") });
+  items.push({ label: "Volume / training day", value: fmt(s.avgVolume, " lbs", 0) });
   items.push({ label: "Avg bodyweight",     value: fmt(s.avgBodyweight, " lbs", 1) });
   items.push({ label: "Days with data",     value: String(s.dayCount) });
 
@@ -663,7 +573,6 @@ function renderSummary() {
   const suggestions = buildSuggestions(summary);
   suggEl.innerHTML = suggestions.map(text => `<li>${text}</li>`).join("");
 
-  renderCharts();
 }
 
 
@@ -671,16 +580,25 @@ function renderSummary() {
 // CHARTS (EXERCISE TREND + WEIGHT TREND)
 // ==================================================
 function renderCharts() {
+  if (typeof Chart === "undefined") {
+    document.getElementById("exerciseChart").hidden = true;
+    document.getElementById("weightChart").hidden = true;
+    document.getElementById("exerciseChartHint").textContent = "Charts are unavailable. Your entries and summaries still work.";
+    document.getElementById("weightChartHint").textContent = "Charts are unavailable. Your check-ins are still saved.";
+    return;
+  }
   renderExerciseChart();
   renderWeightChart();
 }
 
 function renderExerciseChart() {
+  if (typeof Chart === "undefined") return;
   const exerciseName = document.getElementById("exerciseSelectDashboard").value;
   const hintEl = document.getElementById("exerciseChartHint");
   const ctx    = document.getElementById("exerciseChart").getContext("2d");
 
   if (!exerciseName) {
+    document.getElementById("exerciseChart").hidden = true;
     if (exerciseChart) {
       exerciseChart.destroy();
       exerciseChart = null;
@@ -689,8 +607,9 @@ function renderExerciseChart() {
     return;
   }
 
-  const relevant = state.workouts.filter(w => w.exercise === exerciseName);
+  const relevant = state.workouts.filter(w => w.exercise === exerciseName && inLastNDays(w.date, Number(document.getElementById("summaryDays").value)));
   if (!relevant.length) {
+    document.getElementById("exerciseChart").hidden = true;
     if (exerciseChart) {
       exerciseChart.destroy();
       exerciseChart = null;
@@ -715,6 +634,7 @@ function renderExerciseChart() {
     exerciseChart.destroy();
   }
 
+  document.getElementById("exerciseChart").hidden = false;
   exerciseChart = new Chart(ctx, {
     type: "line",
     data: {
@@ -722,7 +642,7 @@ function renderExerciseChart() {
       datasets: [{
         label: `Est. 1RM (${exerciseName})`,
         data: values,
-        tension: 0.25
+        borderColor: "#b6d96b", backgroundColor: "rgba(182,217,107,.08)", fill: true, pointRadius: 4, tension: 0.25
       }]
     },
     options: {
@@ -748,6 +668,8 @@ function renderWeightChart() {
   const ctx = document.getElementById("weightChart").getContext("2d");
 
   if (!state.metrics.length) {
+    document.getElementById("weightChart").hidden = true;
+    document.getElementById("weightChartHint").textContent = "Log your bodyweight to start seeing a trend.";
     if (weightChart) {
       weightChart.destroy();
       weightChart = null;
@@ -756,7 +678,7 @@ function renderWeightChart() {
   }
 
   const byDate = {};
-  state.metrics.forEach(m => {
+  state.metrics.filter(m => inLastNDays(m.date, Number(document.getElementById("summaryDays").value))).forEach(m => {
     if (m.bodyweight !== null && m.bodyweight !== undefined) {
       const d = m.date;
       if (!byDate[d]) byDate[d] = [];
@@ -764,8 +686,10 @@ function renderWeightChart() {
     }
   });
 
-  const dates = Object.keys(byDate).sort((a, b) => new Date(a) - new Date(b));
+  const dates = Object.keys(byDate).sort();
+  document.getElementById("weightChartHint").textContent = dates.length ? "Daily bodyweight in lbs, within the selected window." : "No bodyweight entries in this window.";
   if (!dates.length) {
+    document.getElementById("weightChart").hidden = true;
     if (weightChart) {
       weightChart.destroy();
       weightChart = null;
@@ -783,6 +707,7 @@ function renderWeightChart() {
     weightChart.destroy();
   }
 
+  document.getElementById("weightChart").hidden = false;
   weightChart = new Chart(ctx, {
     type: "line",
     data: {
@@ -790,7 +715,7 @@ function renderWeightChart() {
       datasets: [{
         label: "Bodyweight",
         data: values,
-        tension: 0.25
+        borderColor: "#b6d96b", backgroundColor: "rgba(182,217,107,.08)", fill: true, pointRadius: 4, tension: 0.25
       }]
     },
     options: {
@@ -813,6 +738,8 @@ function renderWeightChart() {
 function renderSummaryAndCharts() {
   updateExercisePresetsUI();
   renderSummary();
+  renderCharts();
+  renderExperience();
 }
 
 
@@ -820,31 +747,11 @@ function renderSummaryAndCharts() {
 // NAVIGATION & APP INIT
 // ==================================================
 function setupNav() {
-  const buttons  = document.querySelectorAll("nav button[data-section]");
-  const sections = document.querySelectorAll("section.view");
-
-  buttons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const target = btn.getAttribute("data-section");
-      buttons.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-
-      sections.forEach(sec => {
-        if (sec.id === target) {
-          sec.classList.add("active");
-        } else {
-          sec.classList.remove("active");
-        }
-      });
-
-      if (target === "dashboardSection") {
-        renderSummaryAndCharts();
-      } else if (target === "exerciseManagerSection") {
-        updateExercisePresetsUI();
-      }
-    });
-  });
+  document.querySelectorAll('nav button[data-section]').forEach(btn => btn.addEventListener('click', () => navigate(btn.dataset.section)));
+  document.querySelectorAll('[data-goto]').forEach(btn => btn.addEventListener('click', () => navigate(btn.dataset.goto)));
+  window.addEventListener('hashchange', () => navigate(location.hash.slice(1), false));
 }
+
 
 function setDefaultDateInputs() {
   const today = todayISO();
@@ -870,6 +777,7 @@ window.addEventListener("DOMContentLoaded", () => {
   setInterval(() => {
     const current = todayISO();
     if (current !== lastDate) {
+      document.querySelectorAll('input[type="date"]').forEach(input => { if (input.value === lastDate) input.value = current; });
       lastDate = current;
       setDefaultDateInputs();
       // Optional: if you want the log to follow today by default:
@@ -878,6 +786,7 @@ window.addEventListener("DOMContentLoaded", () => {
         filterInput.value = current;
         renderMealLog();
       }
+      renderSummaryAndCharts();
     }
   }, 60 * 1000);
 
